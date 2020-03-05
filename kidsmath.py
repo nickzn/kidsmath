@@ -6,6 +6,7 @@ import random
 import math
 import ast
 import operator as op
+import re
 from openpyxl import Workbook
 from openpyxl.styles import Font, Border, Side
 
@@ -18,7 +19,7 @@ def main():
     lower_limit = 1
     upper_limit = 10
     operators = ['+', '-', '*', '/']
-    n_numbers = 2
+    n_numbers = 3
     n_tests = 100
     filename = 'kidsmath.xlsx'
     split_num = int(7 / n_numbers)
@@ -55,6 +56,8 @@ def gen_xlsx(filename, tests, results, n_numbers, split_num):
     formula_columns = list(range(1, max_columns + 1, n_col_every_formula))
 
     for i, test in enumerate(tests):
+        test = re.sub(r'\*', '×', test)
+        test = re.sub(r'\/', '÷', test)
         row.extend([test, '=', '', results[i], ''])
         if (i + 1) % split_num == 0:
             data.append(row)
