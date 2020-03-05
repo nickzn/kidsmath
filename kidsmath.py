@@ -6,10 +6,8 @@ import random
 import math
 import ast
 import operator as op
-import pprint
-
-
-DEBUG = False
+from openpyxl import Workbook
+from openpyxl.styles import Font, Border, Side
 
 
 def main():
@@ -17,18 +15,21 @@ def main():
     parser.add_argument('--debug', '-d', dest='debug',
                         action='store_true', help='debug mode')
     args = parser.parse_args()
-    global DEBUG
-    if args.debug:
-        DEBUG = True
     lower_limit = 1
     upper_limit = 10
     operators = ['+', '-', '*', '/']
-    n_numbers = 6
-    n_tests = 10
+    n_numbers = 2
+    n_tests = 100
+    filename = 'kidsmath.xlsx'
+    split_num = int(7 / n_numbers)
+    if split_num == 0:
+        split_num = 1
 
     tests, results = gen_test(operators,
                               upper_limit, lower_limit, n_numbers, n_tests)
-    if DEBUG:
+    gen_xlsx(filename, tests, results, n_numbers, split_num)
+    print('%s generated!\n' % filename)
+    if args.debug:
         for i, test in enumerate(tests):
             try:
                 answer = eval_expr(test)
@@ -40,6 +41,63 @@ def main():
                 f = 'incorrect'
             print('%-50s%-10s' % ('%s = %s' % (test, results[i]), f))
     return None
+
+
+def gen_xlsx(filename, tests, results, n_numbers, split_num):
+    wb = Workbook()
+    ws = wb.active
+    data = []
+    row = []
+    ft = Font(size=16)
+    bd = Border(bottom=Side(border_style='thin'))
+    n_col_every_formula = 5  # [formula, =, '', answer, '']
+    max_columns = split_num * n_col_every_formula
+    formula_columns = list(range(1, max_columns + 1, n_col_every_formula))
+
+    for i, test in enumerate(tests):
+        row.extend([test, '=', '', results[i], ''])
+        if (i + 1) % split_num == 0:
+            data.append(row)
+            row = []
+    for i, d in enumerate(data):
+        ws.append(d)
+        for j in formula_columns:
+            # j + 2 is result column
+            for k in (j, j + 2):
+                c = ws.cell(row=i + 1, column=k)
+                c.font = ft
+                c.border = bd
+    adjust_column_width(ws, formula_columns, split_num)
+    wb.save(filename=filename)
+
+
+def adjust_column_width(ws, formula_columns, split_num):
+    equal_sign_columns = [i + 1 for i in formula_columns]
+    hide_columns = [i + 3 for i in formula_columns]
+    seperator_columns = [i + 4 for i in formula_columns]
+    for i in hide_columns:
+        # hide answer column and set width of result column
+        letter = ws.cell(row=1, column=i).column_letter
+        ws.column_dimensions.group(letter, letter, hidden=True)
+        letter = ws.cell(row=1, column=i - 1).column_letter
+        ws.column_dimensions[letter].width = calculate_width(
+            tuple(ws.columns)[i - 1]) * 2
+
+    for i in equal_sign_columns:
+        letter = ws.cell(row=1, column=i).column_letter
+        ws.column_dimensions[letter].width = 3
+    for i in seperator_columns:
+        letter = ws.cell(row=1, column=i).column_letter
+        # adjust width of seperator
+        ws.column_dimensions[letter].width = 24 / split_num
+    for i in formula_columns:
+        letter = ws.cell(row=1, column=i).column_letter
+        ws.column_dimensions[letter].width = calculate_width(
+            tuple(ws.columns)[i - 1])
+
+
+def calculate_width(cells):
+    return max(len(str(cell.value)) for cell in cells) + 2
 
 
 def gen_test(operators, upper_limit, lower_limit, n_numbers, n_tests):
@@ -82,6 +140,8 @@ def gen_formula(numbers, operators):
             num_2nd = numbers[n + 1]
         elif n == 0:
             num_2nd = formula
+            parenthesis_1 = ''
+            parenthesis_2 = ''
         else:
             num_2nd = formula
         formula = '%s%s %s %s%s' % (
