@@ -70,23 +70,33 @@ def gen_formula(numbers, operators):
     max_n = len(operators) - 1
     n = max_n
     while n >= 0:
+        parenthesis_1 = ''
+        parenthesis_2 = ''
+        prev_operator = safe_list_get(operators, n - 1)
+        if (prev_operator in ('-', '/') or
+            (prev_operator in ('*', '/') and
+             operators[n] in ('+', '-'))):
+            parenthesis_1 = '('
+            parenthesis_2 = ')'
         if n == max_n:
             num_2nd = numbers[n + 1]
-            parenthesis_1 = '('
-            parenthesis_2 = ')'
         elif n == 0:
             num_2nd = formula
-            parenthesis_1 = ''
-            parenthesis_2 = ''
         else:
             num_2nd = formula
-            parenthesis_1 = '('
-            parenthesis_2 = ')'
         formula = '%s%s %s %s%s' % (
             parenthesis_1, numbers[n], operators[n], num_2nd, parenthesis_2
         )
         n -= 1
     return formula
+
+
+def safe_list_get(l, idx, default=None):
+    try:
+        return l[idx]
+    except IndexError:
+        return default
+    return default
 
 
 def gen_random(
