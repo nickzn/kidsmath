@@ -17,9 +17,10 @@ def main():
                         action='store_true', help='debug mode')
     args = parser.parse_args()
     lower_limit = 1
-    upper_limit = 10
+    upper_limit = 20
     operators = ['+', '-', '*', '/']
-    n_numbers = 3
+    # operators = ['+', '-']
+    n_numbers = 4
     n_tests = 100
     filename = 'kidsmath.xlsx'
     split_num = int(7 / n_numbers)
@@ -173,6 +174,9 @@ def gen_random(
     remain = target
     while i < n_numbers - 1:
         operator = random.choice(operators)
+        # avoid divide by 0
+        if operator == '/' and remain == 0:
+            operator = '*'
         n, remain = func_of_operator[operator](remain,
                                                lower_limit, upper_limit)
         numbers.append(n)
@@ -195,8 +199,6 @@ def numbers_for_plus(target, lower_limit, upper_limit):
 
 def numbers_for_minus(target, lower_limit, upper_limit):
     n1 = random.randint(target, upper_limit)
-    if n1 == target:
-        n1 += 1
     n2 = n1 - target
     return n1, n2
 
