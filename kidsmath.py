@@ -99,6 +99,9 @@ def adjust_column_width(ws, formula_columns, split_num):
         ws.column_dimensions[letter].width = calculate_width(
             tuple(ws.columns)[i - 1])
 
+    for i in range(1, len(tuple(ws.rows)) + 1):
+        ws.row_dimensions[i].height = 37
+
 
 def calculate_width(cells):
     return max(len(str(cell.value)) for cell in cells) + 2
@@ -174,7 +177,6 @@ def gen_random(
     remain = target
     while i < n_numbers - 1:
         operator = random.choice(operators)
-        # avoid divide by 0
         if operator == '/' and remain == 0:
             operator = '*'
         n, remain = func_of_operator[operator](remain,
