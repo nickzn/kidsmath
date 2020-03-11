@@ -111,13 +111,11 @@ class Widget(QWidget):
             msg = '%s generated!\n' % filename
             self.info_dialog(msg)
 
-    @Slot()
     def info_dialog(self, msg):
         dial = QMessageBox()
         dial.setText(msg)
         dial.exec_()
 
-    @Slot()
     def err_dialog(self, msg):
         err = QErrorMessage()
         err.showMessage(msg)
