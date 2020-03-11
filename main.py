@@ -2,6 +2,7 @@
 
 
 import sys
+from pathlib import Path
 import kidsmath
 from PySide2.QtCore import Slot
 from PySide2.QtWidgets import (QLabel, QLineEdit, QPushButton, QApplication,
@@ -31,6 +32,8 @@ class Widget(QWidget):
         self.total = QSpinBox(self)
         self.total.setMinimum(10)
         self.total.setMaximum(1000)
+        self.total_default = 100
+        self.total.setValue(self.total_default)
         self.total.setSingleStep(10)
 
         self.plus_cb = QCheckBox('+')
@@ -40,7 +43,7 @@ class Widget(QWidget):
         self.plus_cb.setChecked(True)
         self.minus_cb.setChecked(True)
 
-        self.file_name = self.tr('kidsmath.xlsx')
+        self.file_name = self.tr('%s/kidsmath.xlsx' % str(Path.home()))
         self.file_label = QLabel(self.tr('Save File:'))
         self.file = QLineEdit(self.tr(self.file_name))
         self.browse_btn = QPushButton(self.tr('Browse'))
