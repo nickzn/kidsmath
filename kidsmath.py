@@ -23,10 +23,7 @@ def main():
     n_numbers = 4
     n_tests = 100
     filename = 'kidsmath.xlsx'
-    split_num = int(7 / n_numbers)
-    if split_num == 0:
-        split_num = 1
-
+    split_num = gen_split(n_numbers)
     tests, results = gen_test(operators,
                               upper_limit, lower_limit, n_numbers, n_tests)
     gen_xlsx(filename, tests, results, n_numbers, split_num)
@@ -43,6 +40,13 @@ def main():
                 f = 'incorrect'
             print('%-50s%-10s' % ('%s = %s' % (test, results[i]), f))
     return None
+
+
+def gen_split(n_numbers):
+    split_num = int(7 / n_numbers)
+    if split_num == 0:
+        return 1
+    return split_num
 
 
 def gen_xlsx(filename, tests, results, n_numbers, split_num):
