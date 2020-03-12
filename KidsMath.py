@@ -108,7 +108,7 @@ class TestWidget(QWidget):
         self.total_try += 1
         msg = 'Last: %s = %s Rate: %s' % (
             last_formula, answer, self.correct_rate())
-        self.status_bar.showMessage(msg)
+        self.status_bar.showMessage(self.convert_operator(msg))
         if self.index == self.total_tests:
             self.show_summary()
             self.stop_test()
@@ -144,7 +144,12 @@ class TestWidget(QWidget):
             self.next.setDefault(True)
 
     def set_test(self, index):
-        self.formula.setText(self.tests[index])
+        text = self.convert_operator(self.tests[index])
+        self.formula.setText(text)
+
+    def convert_operator(self, formula):
+        text = re.sub(r'\*', '×', formula)
+        return re.sub(r'\/', '÷', text)
 
     def toggle_enable(self, w):
         if w.isEnabled():
