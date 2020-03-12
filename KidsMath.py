@@ -94,28 +94,32 @@ class TestWidget(QWidget):
         if not answer:
             self.options.err_dialog('must answer before click next')
             return None
-        correct = int(answer) == formula.eval_expr(self.tests[self.index])
+        last_formula = self.tests[self.index]
+        correct = int(answer) == formula.eval_expr(last_formula)
         if correct:
             self.correct.setPixmap(self.smile_face)
             self.answer.clear()
             self.index += 1
             if self.index < self.total_tests:
                 self.set_test(self.index)
-                self.index_label.setText(self.tr('Rule %d' % (self.index + 1)))
+                self.index_label.setText(self.tr('Test %d' % (self.index + 1)))
         else:
             self.correct.setPixmap(self.sad_face)
         self.total_try += 1
+        msg = 'Last: %s = %s Rate: %s' % (
+            last_formula, answer, self.correct_rate())
+        self.status_bar.showMessage(msg)
         if self.index == self.total_tests:
             self.show_summary()
             self.stop_test()
             return
 
     def correct_rate(self):
-        return self.index / self.total_try
+        return '{0:.0%}'.format(self.index / self.total_try)
 
     def show_summary(self):
         msg = 'Total attempt: %s Correct: %s Rate: %s' % (
-            self.total_try, self.index, '{0:.0%}'.format(self.correct_rate()))
+            self.total_try, self.index, self.correct_rate())
         self.options.info_dialog(msg)
 
     @Slot()
@@ -136,7 +140,7 @@ class TestWidget(QWidget):
             for w in (self.next, self.start, self.stop):
                 self.toggle_enable(w)
             self.set_test(self.index)
-            self.index_label.setText(self.tr('Rule %d' % (self.index + 1)))
+            self.index_label.setText(self.tr('Test %d' % (self.index + 1)))
             self.next.setDefault(True)
 
     def set_test(self, index):
@@ -154,10 +158,11 @@ class TestWidget(QWidget):
             self.toggle_enable(w)
         self.formula.clear()
         self.answer.clear()
+        self.status_bar.clearMessage()
         self.index = 0
         self.correct_try = 0
         self.total_try = 0
-        self.index_label.setText(self.tr('Rule #'))
+        self.index_label.setText(self.tr('Test #'))
 
 
 class SaveWidget(QWidget):
@@ -310,6 +315,8 @@ class MainWindow(QMainWindow):
 
         # Menu
         self.menu = self.menuBar()
+        # pass status bar to Test Tab
+        self.widget.test_widget.status_bar = self.statusBar()
         if re.match(r'Darwin', platform.platform()):
             self.menu.setNativeMenuBar(False)
         self.file_menu = self.menu.addMenu('File')
@@ -334,6 +341,8 @@ class MainWindow(QMainWindow):
             self.widget.setFont(font)
             self.widget.test_widget.formula.setFont(
                 QFont(font.family(), font.pointSize() + 8))
+            self.widget.test_widget.answer.setFont(
+                QFont(font.family(), font.pointSize() + 8))
 
     @Slot()
     def exit_app(self, checked):
@@ -351,6 +360,7 @@ if __name__ == "__main__":
     # QWidget
     widget = Tab()
     widget.test_widget.formula.setFont(font_larger)
+    widget.test_widget.answer.setFont(font_larger)
     # QMainWindow using QWidget as central widget
     window = MainWindow(widget)
     # window.resize(800, 600)
