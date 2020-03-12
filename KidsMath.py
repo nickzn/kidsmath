@@ -6,12 +6,13 @@ import platform
 import re
 from pathlib import Path
 import formula
-from PySide2.QtCore import Slot
-from PySide2.QtGui import QIntValidator, QPixmap
+from PySide2.QtCore import Slot, Qt
+from PySide2.QtGui import QIntValidator, QPixmap, QFont
 from PySide2.QtWidgets import (QLabel, QLineEdit, QPushButton, QApplication,
                                QSpinBox, QFileDialog, QGridLayout, QWidget,
                                QCheckBox, QGroupBox, QHBoxLayout, QMessageBox,
-                               QErrorMessage, QMainWindow, QTabWidget, QAction)
+                               QErrorMessage, QMainWindow, QTabWidget,
+                               QFontDialog, QAction)
 
 
 class Tab(QTabWidget):
@@ -30,8 +31,15 @@ class TestWidget(QWidget):
         self.results = []
         self.tests = []
         self.index = 0
-        self.n_number = 1
+        self.total_tests = 1
         self.total_try = 0
+        self.total_spin = QSpinBox(self)
+        self.total_spin.setMinimum(10)
+        self.total_spin.setMaximum(1000)
+        self.total_spin.setValue(self.options.total_default)
+        self.total_spin.setSingleStep(10)
+        # for sync two total spins
+        self.options.total_spin_test = self.total_spin
         self.index_label = QLabel(self.tr('Test #'))
         self.start = QPushButton(self.tr('Start'))
         self.stop = QPushButton(self.tr('Stop'))
@@ -45,6 +53,7 @@ class TestWidget(QWidget):
         self.stop.setEnabled(False)
 
         self.formula = QLineEdit()
+        self.formula.setAlignment(Qt.AlignRight)
         self.formula.setReadOnly(True)
         min_height = 50
         self.formula.setMinimumHeight(min_height)
@@ -56,7 +65,7 @@ class TestWidget(QWidget):
         row = 0
         hbox = QHBoxLayout()
         hbox.addWidget(QLabel(self.tr('Total tests')))
-        hbox.addWidget(self.options.total)
+        hbox.addWidget(self.total_spin)
         layout.addWidget(self.index_label, row, 0)
         layout.addLayout(hbox, row, 2)
         layout.addWidget(self.start, row, 3)
@@ -72,6 +81,12 @@ class TestWidget(QWidget):
         self.start.clicked.connect(self.start_test)
         self.stop.clicked.connect(self.stop_test)
         self.next.clicked.connect(self.next_test)
+        self.total_spin.valueChanged.connect(self.sync_total)
+        self.answer.returnPressed.connect(self.next_test)
+
+    @Slot()
+    def sync_total(self):
+        self.options.total.setValue(self.total_spin.value())
 
     @Slot()
     def next_test(self):
@@ -84,13 +99,13 @@ class TestWidget(QWidget):
             self.correct.setPixmap(self.smile_face)
             self.answer.clear()
             self.index += 1
-            if self.index < self.n_number:
+            if self.index < self.total_tests:
                 self.set_test(self.index)
                 self.index_label.setText(self.tr('Rule %d' % (self.index + 1)))
         else:
             self.correct.setPixmap(self.sad_face)
         self.total_try += 1
-        if self.index == len(self.tests):
+        if self.index == self.total_tests:
             self.show_summary()
             self.stop_test()
             return
@@ -106,7 +121,8 @@ class TestWidget(QWidget):
     @Slot()
     def start_test(self):
         (filename, upper_limit, lower_limit,
-         self.n_number, total_tests, operators) = self.options.collect_input()
+         n_number, total_tests, operators) = self.options.collect_input()
+        self.total_tests = total_tests
         # skip filename check in test mode
         filename = True
         err_msg = self.options.check_input(filename,
@@ -115,7 +131,8 @@ class TestWidget(QWidget):
             self.options.err_dialog(err_msg)
         else:
             self.tests, self.results = formula.gen_test(
-                operators, upper_limit, lower_limit, self.n_number, total_tests)
+                operators, upper_limit, lower_limit,
+                n_number, total_tests)
             for w in (self.next, self.start, self.stop):
                 self.toggle_enable(w)
             self.set_test(self.index)
@@ -212,6 +229,11 @@ class SaveWidget(QWidget):
 
         self.browse_btn.clicked.connect(self.set_file)
         self.save_btn.clicked.connect(self.save_file)
+        self.total.valueChanged.connect(self.sync_total)
+
+    @Slot()
+    def sync_total(self):
+        self.total_spin_test.setValue(self.total.value())
 
     @Slot()
     def set_file(self):
@@ -284,20 +306,34 @@ class MainWindow(QMainWindow):
     def __init__(self, widget):
         QMainWindow.__init__(self)
         self.setWindowTitle('KidsMath')
+        self.widget = widget
 
         # Menu
         self.menu = self.menuBar()
         if re.match(r'Darwin', platform.platform()):
             self.menu.setNativeMenuBar(False)
         self.file_menu = self.menu.addMenu('File')
+        self.font_menu = self.menu.addMenu('Font')
 
         # Exit QAction
         exit_action = QAction('Exit', self)
         exit_action.setShortcut('Ctrl+Q')
         exit_action.triggered.connect(self.exit_app)
+        font_action = QAction('Font', self)
+        font_action.setShortcut('Ctrl+F')
+        font_action.triggered.connect(self.font_app)
 
         self.file_menu.addAction(exit_action)
-        self.setCentralWidget(widget)
+        self.font_menu.addAction(font_action)
+        self.setCentralWidget(self.widget)
+
+    @Slot()
+    def font_app(self, checked):
+        (ok, font) = QFontDialog.getFont(self)
+        if ok:
+            self.widget.setFont(font)
+            self.widget.test_widget.formula.setFont(
+                QFont(font.family(), font.pointSize() + 8))
 
     @Slot()
     def exit_app(self, checked):
@@ -307,8 +343,14 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
     # Qt Application
     app = QApplication(sys.argv)
+    font_size = 14
+    font_family = 'Helvetica'
+    font = QFont(font_family, font_size)
+    font_larger = QFont(font_family, font_size + 8)
+    app.setFont(font)
     # QWidget
     widget = Tab()
+    widget.test_widget.formula.setFont(font_larger)
     # QMainWindow using QWidget as central widget
     window = MainWindow(widget)
     # window.resize(800, 600)
