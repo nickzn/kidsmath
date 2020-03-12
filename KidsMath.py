@@ -92,20 +92,10 @@ class Widget(QWidget):
 
     @Slot()
     def save_file(self):
-        err_msg = ''
-        filename = self.file.text()
-        upper_limit = self.upper_spin.value()
-        lower_limit = self.lower_spin.value()
-        n_number = self.n_spin.value()
-        total_tests = self.total.value()
-        if not filename:
-            err_msg += 'missing file name\n'
-        if upper_limit < lower_limit:
-            err_msg += 'wrong setting, min number is larger than max number\n'
-        operators = self.collect_operators()
-        if len(operators) == 0:
-            err_msg += 'at least one operator must be checked\n'
-
+        (filename, upper_limit, lower_limit,
+         n_number, total_tests, operators) = self.collect_input()
+        err_msg = self.check_input(filename,
+                                   upper_limit, lower_limit, operators)
         if err_msg:
             self.err_dialog(err_msg)
         else:
@@ -116,8 +106,25 @@ class Widget(QWidget):
             msg = '%s generated!\n' % filename
             self.info_dialog(msg)
 
-    def collect_data(self):
-        pass
+    def check_input(filename, upper_limit, lower_limit, operators):
+        err_msg = ''
+        if not filename:
+            err_msg += 'missing file name\n'
+        if upper_limit < lower_limit:
+            err_msg += 'wrong setting, min number is larger than max number\n'
+        if len(operators) == 0:
+            err_msg += 'at least one operator must be checked\n'
+        return err_msg
+
+    def collect_input(self):
+        filename = self.file.text()
+        upper_limit = self.upper_spin.value()
+        lower_limit = self.lower_spin.value()
+        n_number = self.n_spin.value()
+        total_tests = self.total.value()
+        operators = self.collect_operators()
+        return (filename, upper_limit, lower_limit,
+                n_number, total_tests, operators)
 
     def info_dialog(self, msg):
         dial = QMessageBox()
@@ -129,7 +136,6 @@ class Widget(QWidget):
         err.showMessage(msg)
         err.exec_()
 
-    @Slot()
     def collect_operators(self):
         operators = []
         if self.plus_cb.isChecked():
