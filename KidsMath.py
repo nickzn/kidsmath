@@ -10,13 +10,19 @@ from PySide2.QtCore import Slot
 from PySide2.QtWidgets import (QLabel, QLineEdit, QPushButton, QApplication,
                                QSpinBox, QFileDialog, QGridLayout, QWidget,
                                QCheckBox, QGroupBox, QHBoxLayout, QMessageBox,
-                               QErrorMessage, QMainWindow, QAction)
+                               QErrorMessage, QMainWindow, QTabWidget, QAction)
 
 
-class Widget(QWidget):
+class Tab(QTabWidget):
+    def __init__(self, parent=None):
+        super(Tab, self).__init__(parent)
+        self.addTab(SaveWidget(), 'Options')
+
+
+class SaveWidget(QWidget):
 
     def __init__(self, parent=None):
-        super(Widget, self).__init__(parent)
+        super(SaveWidget, self).__init__(parent)
         # Create widgets
         self.lower_label = QLabel(self.tr('Min'))
         self.lower_spin = QSpinBox(self)
@@ -50,6 +56,7 @@ class Widget(QWidget):
         self.file = QLineEdit(self.tr(self.file_name))
         self.browse_btn = QPushButton(self.tr('Browse'))
         self.save_btn = QPushButton(self.tr('Save'))
+
         # Create layout and add widgets
         hbox = QHBoxLayout()
         hbox.addWidget(self.plus_cb)
@@ -106,7 +113,7 @@ class Widget(QWidget):
             msg = '%s generated!\n' % filename
             self.info_dialog(msg)
 
-    def check_input(filename, upper_limit, lower_limit, operators):
+    def check_input(self, filename, upper_limit, lower_limit, operators):
         err_msg = ''
         if not filename:
             err_msg += 'missing file name\n'
@@ -177,7 +184,7 @@ if __name__ == "__main__":
     # Qt Application
     app = QApplication(sys.argv)
     # QWidget
-    widget = Widget()
+    widget = Tab()
     # QMainWindow using QWidget as central widget
     window = MainWindow(widget)
     # window.resize(800, 600)
