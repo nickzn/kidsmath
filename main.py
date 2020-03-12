@@ -2,6 +2,8 @@
 
 
 import sys
+import platform
+import re
 from pathlib import Path
 import kidsmath
 from PySide2.QtCore import Slot
@@ -145,6 +147,8 @@ class MainWindow(QMainWindow):
 
         # Menu
         self.menu = self.menuBar()
+        if re.match(r'Darwin', platform.platform()):
+            self.menu.setNativeMenuBar(False)
         self.file_menu = self.menu.addMenu('File')
 
         # Exit QAction
