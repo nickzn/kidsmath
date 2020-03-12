@@ -7,12 +7,12 @@ import re
 from pathlib import Path
 import formula
 from PySide2.QtCore import Slot, Qt
-from PySide2.QtGui import QIntValidator, QPixmap, QFont
+from PySide2.QtGui import QIntValidator, QPixmap, QFont, QKeySequence
 from PySide2.QtWidgets import (QLabel, QLineEdit, QPushButton, QApplication,
                                QSpinBox, QFileDialog, QGridLayout, QWidget,
                                QCheckBox, QGroupBox, QHBoxLayout, QMessageBox,
                                QErrorMessage, QMainWindow, QTabWidget,
-                               QFontDialog, QAction)
+                               QFontDialog, QAction, QShortcut)
 
 
 class Tab(QTabWidget):
@@ -327,7 +327,7 @@ class MainWindow(QMainWindow):
         self.file_menu = self.menu.addMenu('File')
         self.font_menu = self.menu.addMenu('Font')
 
-        # Exit QAction
+        # QAction
         exit_action = QAction('Exit', self)
         exit_action.setShortcut('Ctrl+Q')
         exit_action.triggered.connect(self.exit_app)
@@ -335,9 +335,42 @@ class MainWindow(QMainWindow):
         font_action.setShortcut('Ctrl+F')
         font_action.triggered.connect(self.font_app)
 
+        # Shortcuts
+        start_shortcut = QShortcut(QKeySequence(self.tr('Ctrl+S')), self)
+        start_shortcut.activated.connect(self.start_app)
+        stop_shortcut = QShortcut(QKeySequence(self.tr('Ctrl+T')), self)
+        stop_shortcut.activated.connect(self.stop_app)
+        next_shortcut = QShortcut(QKeySequence(self.tr('Ctrl+N')), self)
+        next_shortcut.activated.connect(self.next_app)
+        option_shortcut = QShortcut(QKeySequence(self.tr('Ctrl+O')), self)
+        option_shortcut.activated.connect(self.option_app)
+        math_shortcut = QShortcut(QKeySequence(self.tr('Ctrl+M')), self)
+        math_shortcut.activated.connect(self.math_app)
+
         self.file_menu.addAction(exit_action)
         self.font_menu.addAction(font_action)
         self.setCentralWidget(self.widget)
+
+    @Slot()
+    def math_app(self):
+        self.widget.setCurrentIndex(0)
+
+    @Slot()
+    def option_app(self):
+        self.widget.setCurrentIndex(1)
+
+    @Slot()
+    def next_app(self):
+        self.widget.test_widget.next_test()
+
+    @Slot()
+    def stop_app(self):
+        self.widget.test_widget.stop_test()
+
+    @Slot()
+    def start_app(self):
+        self.widget.test_widget.start_test()
+        self.widget.test_widget.answer.setFocus()
 
     @Slot()
     def font_app(self, checked):
