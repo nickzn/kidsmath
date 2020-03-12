@@ -7,6 +7,7 @@ import re
 from pathlib import Path
 import formula
 from PySide2.QtCore import Slot
+from PySide2.QtGui import QIntValidator, QPixmap
 from PySide2.QtWidgets import (QLabel, QLineEdit, QPushButton, QApplication,
                                QSpinBox, QFileDialog, QGridLayout, QWidget,
                                QCheckBox, QGroupBox, QHBoxLayout, QMessageBox,
@@ -16,7 +17,130 @@ from PySide2.QtWidgets import (QLabel, QLineEdit, QPushButton, QApplication,
 class Tab(QTabWidget):
     def __init__(self, parent=None):
         super(Tab, self).__init__(parent)
-        self.addTab(SaveWidget(), 'Options')
+        self.save_widget = SaveWidget()
+        self.test_widget = TestWidget(options=self.save_widget)
+        self.addTab(self.test_widget, 'Math Test')
+        self.addTab(self.save_widget, 'Options')
+
+
+class TestWidget(QWidget):
+    def __init__(self, parent=None, options=None):
+        super(TestWidget, self).__init__(parent)
+        self.options = options
+        self.results = []
+        self.tests = []
+        self.index = 0
+        self.n_number = 1
+        self.total_try = 0
+        self.index_label = QLabel(self.tr('Test #'))
+        self.start = QPushButton(self.tr('Start'))
+        self.stop = QPushButton(self.tr('Stop'))
+        self.next = QPushButton(self.tr('Next'))
+        self.correct = QLabel()
+        self.smile_face = QPixmap('./images/smile.png')
+        self.sad_face = QPixmap('./images/sad.png')
+        self.correct.setPixmap(self.smile_face)
+        self.start.setDefault(True)
+        self.next.setEnabled(False)
+        self.stop.setEnabled(False)
+
+        self.formula = QLineEdit()
+        self.formula.setReadOnly(True)
+        min_height = 50
+        self.formula.setMinimumHeight(min_height)
+        self.answer = QLineEdit()
+        self.answer.setMinimumHeight(min_height)
+        self.answer.setValidator(QIntValidator())
+
+        layout = QGridLayout()
+        row = 0
+        hbox = QHBoxLayout()
+        hbox.addWidget(QLabel(self.tr('Total tests')))
+        hbox.addWidget(self.options.total)
+        layout.addWidget(self.index_label, row, 0)
+        layout.addLayout(hbox, row, 2)
+        layout.addWidget(self.start, row, 3)
+        layout.addWidget(self.stop, row, 4)
+        row += 1
+        layout.addWidget(self.formula, row, 0)
+        layout.addWidget(self.answer, row, 2)
+        layout.addWidget(self.next, row, 3)
+        layout.addWidget(self.correct, row, 4)
+        layout.setColumnStretch(0, 1)
+        self.setLayout(layout)
+
+        self.start.clicked.connect(self.start_test)
+        self.stop.clicked.connect(self.stop_test)
+        self.next.clicked.connect(self.next_test)
+
+    @Slot()
+    def next_test(self):
+        answer = self.answer.text()
+        if not answer:
+            self.options.err_dialog('must answer before click next')
+            return None
+        correct = int(answer) == formula.eval_expr(self.tests[self.index])
+        if correct:
+            self.correct.setPixmap(self.smile_face)
+            self.answer.clear()
+            self.index += 1
+            if self.index < self.n_number:
+                self.set_test(self.index)
+                self.index_label.setText(self.tr('Rule %d' % (self.index + 1)))
+        else:
+            self.correct.setPixmap(self.sad_face)
+        self.total_try += 1
+        if self.index == len(self.tests):
+            self.show_summary()
+            self.stop_test()
+            return
+
+    def correct_rate(self):
+        return self.index / self.total_try
+
+    def show_summary(self):
+        msg = 'Total attempt: %s Correct: %s Rate: %s' % (
+            self.total_try, self.index, '{0:.0%}'.format(self.correct_rate()))
+        self.options.info_dialog(msg)
+
+    @Slot()
+    def start_test(self):
+        (filename, upper_limit, lower_limit,
+         self.n_number, total_tests, operators) = self.options.collect_input()
+        # skip filename check in test mode
+        filename = True
+        err_msg = self.options.check_input(filename,
+                                           upper_limit, lower_limit, operators)
+        if err_msg:
+            self.options.err_dialog(err_msg)
+        else:
+            self.tests, self.results = formula.gen_test(
+                operators, upper_limit, lower_limit, self.n_number, total_tests)
+            for w in (self.next, self.start, self.stop):
+                self.toggle_enable(w)
+            self.set_test(self.index)
+            self.index_label.setText(self.tr('Rule %d' % (self.index + 1)))
+            self.next.setDefault(True)
+
+    def set_test(self, index):
+        self.formula.setText(self.tests[index])
+
+    def toggle_enable(self, w):
+        if w.isEnabled():
+            w.setEnabled(False)
+        else:
+            w.setEnabled(True)
+
+    @Slot()
+    def stop_test(self):
+        for w in (self.next, self.start, self.stop):
+            self.toggle_enable(w)
+        self.formula.clear()
+        self.answer.clear()
+        self.index = 0
+        self.correct_try = 0
+        self.total_try = 0
+        self.index_label.setText(self.tr('Rule #'))
 
 
 class SaveWidget(QWidget):
