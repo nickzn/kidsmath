@@ -5,7 +5,7 @@ import sys
 import platform
 import re
 from pathlib import Path
-import kidsmath
+import formula
 from PySide2.QtCore import Slot
 from PySide2.QtWidgets import (QLabel, QLineEdit, QPushButton, QApplication,
                                QSpinBox, QFileDialog, QGridLayout, QWidget,
@@ -109,12 +109,15 @@ class Widget(QWidget):
         if err_msg:
             self.err_dialog(err_msg)
         else:
-            split_num = kidsmath.gen_split(n_number)
-            tests, results = kidsmath.gen_test(
+            split_num = formula.gen_split(n_number)
+            tests, results = formula.gen_test(
                 operators, upper_limit, lower_limit, n_number, total_tests)
-            kidsmath.gen_xlsx(filename, tests, results, n_number, split_num)
+            formula.gen_xlsx(filename, tests, results, n_number, split_num)
             msg = '%s generated!\n' % filename
             self.info_dialog(msg)
+
+    def collect_data(self):
+        pass
 
     def info_dialog(self, msg):
         dial = QMessageBox()
@@ -143,7 +146,7 @@ class Widget(QWidget):
 class MainWindow(QMainWindow):
     def __init__(self, widget):
         QMainWindow.__init__(self)
-        self.setWindowTitle('Kidsmath')
+        self.setWindowTitle('KidsMath')
 
         # Menu
         self.menu = self.menuBar()
