@@ -46,8 +46,18 @@ class TestWidget(QWidget):
         self.next = QPushButton(self.tr('Next'))
         self.clear = QPushButton(self.tr('Clear'))
         self.correct = QLabel()
-        self.smile_face = QPixmap('./images/smile.png')
-        self.sad_face = QPixmap('./images/sad.png')
+        current_path = str(Path(__file__).parent.absolute())
+        if current_path == '/':
+            if re.match(r'Darwin', platform.platform()):
+                image_path = '/Applications/KidsMath.app/Contents/MacOS/images'
+            else:
+                image_path = './images'
+        else:
+            image_path = './images'
+        self.smile_face = QPixmap(
+            '%s/smile.png' % image_path)
+        self.sad_face = QPixmap(
+            '%s/sad.png' % image_path)
         self.correct.setPixmap(self.smile_face)
         self.start.setDefault(True)
         self.next.setEnabled(False)
