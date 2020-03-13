@@ -59,20 +59,29 @@ class TestWidget(QWidget):
         self.formula.setMinimumHeight(min_height)
         self.answer = QLineEdit()
         self.answer.setMinimumHeight(min_height)
+        self.answer.setFixedWidth(70)
         self.answer.setValidator(QIntValidator())
 
+        self.keyboard_cb = QCheckBox(self.tr('Keyboard'))
+        self.keyboard_cb.setChecked(True)
+        self.keyboard_cb.stateChanged.connect(self.show_keyboard)
         keyboard_layout = QGridLayout()
         for i, row in enumerate(((7, 8, 9),
                                  (4, 5, 6),
                                  (1, 2, 3),
-                                 (0, 'C'))):
+                                 (0, 'C', '='))):
             for j, key in enumerate(row):
                 btn = QPushButton(str(key))
                 if key == 'C':
                     btn.clicked.connect(self.key_clear)
+                elif key == '=':
+                    btn.clicked.connect(self.next_test)
                 else:
                     btn.clicked.connect(self.key_enter)
                 keyboard_layout.addWidget(btn, i, j)
+
+        self.keyboard_box = QGroupBox()
+        self.keyboard_box.setLayout(keyboard_layout)
 
         layout = QGridLayout()
         row = 0
@@ -80,16 +89,18 @@ class TestWidget(QWidget):
         hbox.addWidget(QLabel(self.tr('Total tests')))
         hbox.addWidget(self.total_spin)
         layout.addWidget(self.index_label, row, 0)
-        layout.addLayout(hbox, row, 2)
-        layout.addWidget(self.start, row, 3)
-        layout.addWidget(self.stop, row, 4)
+        layout.addLayout(hbox, row, 1)
+        layout.addWidget(self.start, row, 2)
+        layout.addWidget(self.stop, row, 3)
+        layout.addWidget(self.keyboard_cb, row, 4)
+        layout.addWidget(self.keyboard_box, row, 5, 3, 1)
         row += 1
-        layout.addWidget(self.formula, row, 0)
-        layout.addWidget(self.answer, row, 2)
-        layout.addWidget(self.next, row, 3)
+        layout.addWidget(self.formula, row, 0, 1, 3)
+        layout.addWidget(self.answer, row, 3)
         layout.addWidget(self.correct, row, 4)
         row += 1
-        layout.addLayout(keyboard_layout, row, 2)
+        layout.addWidget(self.next, row, 4)
+        row += 1
         layout.setColumnStretch(0, 1)
         self.setLayout(layout)
 
@@ -98,6 +109,13 @@ class TestWidget(QWidget):
         self.next.clicked.connect(self.next_test)
         self.total_spin.valueChanged.connect(self.sync_total)
         self.answer.returnPressed.connect(self.next_test)
+
+    @Slot()
+    def show_keyboard(self):
+        if self.keyboard_cb.isChecked():
+            self.keyboard_box.setVisible(True)
+        else:
+            self.keyboard_box.setVisible(False)
 
     @Slot()
     def key_clear(self):
@@ -340,7 +358,7 @@ class SaveWidget(QWidget):
 class MainWindow(QMainWindow):
     def __init__(self, widget):
         QMainWindow.__init__(self)
-        self.setWindowTitle(self.tr('KidsMath'))
+        # self.setWindowTitle(self.tr('KidsMath'))
         self.widget = widget
 
         # Menu
