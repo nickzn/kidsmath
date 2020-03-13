@@ -12,7 +12,7 @@ from PySide2.QtWidgets import (QLabel, QLineEdit, QPushButton, QApplication,
                                QSpinBox, QFileDialog, QGridLayout, QWidget,
                                QCheckBox, QGroupBox, QHBoxLayout, QMessageBox,
                                QErrorMessage, QMainWindow, QTabWidget,
-                               QFontDialog, QAction, QShortcut)
+                               QMenuBar, QFontDialog, QAction, QShortcut)
 
 
 class Tab(QTabWidget):
@@ -319,21 +319,17 @@ class MainWindow(QMainWindow):
         self.widget = widget
 
         # Menu
-        self.menu = self.menuBar()
+        self.menu = QMenuBar()
+        self.font_menu = self.menu.addMenu(self.tr('Tools'))
+
         # pass status bar to Test Tab
         self.widget.test_widget.status_bar = self.statusBar()
-        if re.match(r'Darwin', platform.platform()):
-            self.menu.setNativeMenuBar(False)
-        self.file_menu = self.menu.addMenu('File')
-        self.font_menu = self.menu.addMenu('Font')
 
         # QAction
-        exit_action = QAction('Exit', self)
-        exit_action.setShortcut('Ctrl+Q')
-        exit_action.triggered.connect(self.exit_app)
         font_action = QAction('Font', self)
         font_action.setShortcut('Ctrl+F')
         font_action.triggered.connect(self.font_app)
+        self.font_menu.addAction(font_action)
 
         # Shortcuts
         start_shortcut = QShortcut(QKeySequence(self.tr('Ctrl+S')), self)
@@ -347,8 +343,6 @@ class MainWindow(QMainWindow):
         math_shortcut = QShortcut(QKeySequence(self.tr('Ctrl+M')), self)
         math_shortcut.activated.connect(self.math_app)
 
-        self.file_menu.addAction(exit_action)
-        self.font_menu.addAction(font_action)
         self.setCentralWidget(self.widget)
 
     @Slot()
