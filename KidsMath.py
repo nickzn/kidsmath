@@ -20,8 +20,8 @@ class Tab(QTabWidget):
         super(Tab, self).__init__(parent)
         self.save_widget = SaveWidget()
         self.test_widget = TestWidget(options=self.save_widget)
-        self.addTab(self.test_widget, 'Math Test')
-        self.addTab(self.save_widget, 'Options')
+        self.addTab(self.test_widget, self.tr('Math Test'))
+        self.addTab(self.save_widget, self.tr('Options'))
 
 
 class TestWidget(QWidget):
@@ -92,7 +92,7 @@ class TestWidget(QWidget):
     def next_test(self):
         answer = self.answer.text()
         if not answer:
-            self.options.err_dialog('must answer before click next')
+            self.options.err_dialog(self.tr('must answer before click next'))
             return None
         last_formula = self.tests[self.index]
         correct = int(answer) == formula.eval_expr(last_formula)
@@ -106,8 +106,8 @@ class TestWidget(QWidget):
         else:
             self.correct.setPixmap(self.sad_face)
         self.total_try += 1
-        msg = 'Last: %s = %s Rate: %s' % (
-            last_formula, answer, self.correct_rate())
+        msg = self.tr('Last: %s = %s Rate: %s' % (
+            last_formula, answer, self.correct_rate()))
         self.status_bar.showMessage(self.convert_operator(msg))
         if self.index == self.total_tests:
             self.show_summary()
@@ -118,8 +118,8 @@ class TestWidget(QWidget):
         return '{0:.0%}'.format(self.index / self.total_try)
 
     def show_summary(self):
-        msg = 'Total attempt: %s Correct: %s Rate: %s' % (
-            self.total_try, self.index, self.correct_rate())
+        msg = self.tr('Total attempt: %s Correct: %s Rate: %s' % (
+            self.total_try, self.index, self.correct_rate()))
         self.options.info_dialog(msg)
 
     @Slot()
@@ -272,11 +272,12 @@ class SaveWidget(QWidget):
     def check_input(self, filename, upper_limit, lower_limit, operators):
         err_msg = ''
         if not filename:
-            err_msg += 'missing file name\n'
+            err_msg += self.tr('missing file name\n')
         if upper_limit < lower_limit:
-            err_msg += 'wrong setting, min number is larger than max number\n'
+            err_msg += self.tr(
+                'wrong setting, min number is larger than max number\n')
         if len(operators) == 0:
-            err_msg += 'at least one operator must be checked\n'
+            err_msg += self.tr('at least one operator must be checked\n')
         return err_msg
 
     def collect_input(self):
@@ -315,7 +316,7 @@ class SaveWidget(QWidget):
 class MainWindow(QMainWindow):
     def __init__(self, widget):
         QMainWindow.__init__(self)
-        self.setWindowTitle('KidsMath')
+        self.setWindowTitle(self.tr('KidsMath'))
         self.widget = widget
 
         # Menu
@@ -326,21 +327,21 @@ class MainWindow(QMainWindow):
         self.widget.test_widget.status_bar = self.statusBar()
 
         # QAction
-        font_action = QAction('Font', self)
+        font_action = QAction(self.tr('Font'), self)
         font_action.setShortcut('Ctrl+F')
         font_action.triggered.connect(self.font_app)
         self.font_menu.addAction(font_action)
 
         # Shortcuts
-        start_shortcut = QShortcut(QKeySequence(self.tr('Ctrl+S')), self)
+        start_shortcut = QShortcut(QKeySequence('Ctrl+S'), self)
         start_shortcut.activated.connect(self.start_app)
-        stop_shortcut = QShortcut(QKeySequence(self.tr('Ctrl+T')), self)
+        stop_shortcut = QShortcut(QKeySequence('Ctrl+T'), self)
         stop_shortcut.activated.connect(self.stop_app)
-        next_shortcut = QShortcut(QKeySequence(self.tr('Ctrl+N')), self)
+        next_shortcut = QShortcut(QKeySequence('Ctrl+N'), self)
         next_shortcut.activated.connect(self.next_app)
-        option_shortcut = QShortcut(QKeySequence(self.tr('Ctrl+O')), self)
+        option_shortcut = QShortcut(QKeySequence('Ctrl+O'), self)
         option_shortcut.activated.connect(self.option_app)
-        math_shortcut = QShortcut(QKeySequence(self.tr('Ctrl+M')), self)
+        math_shortcut = QShortcut(QKeySequence('Ctrl+M'), self)
         math_shortcut.activated.connect(self.math_app)
 
         self.setCentralWidget(self.widget)
