@@ -44,12 +44,14 @@ class TestWidget(QWidget):
         self.start = QPushButton(self.tr('Start'))
         self.stop = QPushButton(self.tr('Stop'))
         self.next = QPushButton(self.tr('Next'))
+        self.clear = QPushButton(self.tr('Clear'))
         self.correct = QLabel()
         self.smile_face = QPixmap('./images/smile.png')
         self.sad_face = QPixmap('./images/sad.png')
         self.correct.setPixmap(self.smile_face)
         self.start.setDefault(True)
         self.next.setEnabled(False)
+        self.clear.setEnabled(False)
         self.stop.setEnabled(False)
 
         self.formula = QLineEdit()
@@ -99,6 +101,7 @@ class TestWidget(QWidget):
         layout.addWidget(self.answer, row, 3)
         layout.addWidget(self.correct, row, 4)
         row += 1
+        layout.addWidget(self.clear, row, 3)
         layout.addWidget(self.next, row, 4)
         row += 1
         layout.setColumnStretch(0, 1)
@@ -107,6 +110,7 @@ class TestWidget(QWidget):
         self.start.clicked.connect(self.start_test)
         self.stop.clicked.connect(self.stop_test)
         self.next.clicked.connect(self.next_test)
+        self.clear.clicked.connect(self.key_clear)
         self.total_spin.valueChanged.connect(self.sync_total)
         self.answer.returnPressed.connect(self.next_test)
 
@@ -179,7 +183,7 @@ class TestWidget(QWidget):
             self.tests, self.results = formula.gen_test(
                 operators, upper_limit, lower_limit,
                 n_number, total_tests)
-            for w in (self.next, self.start, self.stop):
+            for w in (self.next, self.start, self.stop, self.clear):
                 self.toggle_enable(w)
             self.set_test(self.index)
             self.index_label.setText(self.tr('Test %d' % (self.index + 1)))
@@ -201,7 +205,7 @@ class TestWidget(QWidget):
 
     @Slot()
     def stop_test(self):
-        for w in (self.next, self.start, self.stop):
+        for w in (self.next, self.start, self.stop, self.clear):
             self.toggle_enable(w)
         self.formula.clear()
         self.answer.clear()
