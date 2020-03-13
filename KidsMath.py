@@ -61,6 +61,19 @@ class TestWidget(QWidget):
         self.answer.setMinimumHeight(min_height)
         self.answer.setValidator(QIntValidator())
 
+        keyboard_layout = QGridLayout()
+        for i, row in enumerate(((7, 8, 9),
+                                 (4, 5, 6),
+                                 (1, 2, 3),
+                                 (0, 'C'))):
+            for j, key in enumerate(row):
+                btn = QPushButton(str(key))
+                if key == 'C':
+                    btn.clicked.connect(self.key_clear)
+                else:
+                    btn.clicked.connect(self.key_enter)
+                keyboard_layout.addWidget(btn, i, j)
+
         layout = QGridLayout()
         row = 0
         hbox = QHBoxLayout()
@@ -75,6 +88,8 @@ class TestWidget(QWidget):
         layout.addWidget(self.answer, row, 2)
         layout.addWidget(self.next, row, 3)
         layout.addWidget(self.correct, row, 4)
+        row += 1
+        layout.addLayout(keyboard_layout, row, 2)
         layout.setColumnStretch(0, 1)
         self.setLayout(layout)
 
@@ -83,6 +98,15 @@ class TestWidget(QWidget):
         self.next.clicked.connect(self.next_test)
         self.total_spin.valueChanged.connect(self.sync_total)
         self.answer.returnPressed.connect(self.next_test)
+
+    @Slot()
+    def key_clear(self):
+        self.answer.clear()
+
+    @Slot()
+    def key_enter(self):
+        self.answer.setText('%s%s' % (self.answer.text(),
+                                      self.sender().text()))
 
     @Slot()
     def sync_total(self):
