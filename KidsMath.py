@@ -3,8 +3,9 @@
 
 import sys
 import os
+import platform
 import re
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import formula
 from PySide2.QtCore import Slot, Qt
 from PySide2.QtGui import QIntValidator, QPixmap, QFont, QKeySequence
@@ -122,7 +123,10 @@ class TestWidget(QWidget):
             base_path = sys._MEIPASS
         except Exception:
             base_path = os.path.abspath(".")
-        return os.path.join(base_path, relative_path)
+        if re.match(r'Windows', platform.platform()):
+            return str(PureWindowsPath("%s/%s" % (base_path, relative_path)))
+        else:
+            return os.path.join(base_path, relative_path)
 
     @Slot()
     def show_keyboard(self):
