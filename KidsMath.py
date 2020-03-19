@@ -2,7 +2,7 @@
 
 
 import sys
-import platform
+import os
 import re
 from pathlib import Path
 import formula
@@ -46,18 +46,10 @@ class TestWidget(QWidget):
         self.next = QPushButton(self.tr('Next'))
         self.clear = QPushButton(self.tr('Clear'))
         self.correct = QLabel()
-        current_path = str(Path(__file__).parent.absolute())
-        if current_path == '/':
-            if re.match(r'Darwin', platform.platform()):
-                image_path = '/Applications/KidsMath.app/Contents/MacOS/images'
-            else:
-                image_path = './images'
-        else:
-            image_path = './images'
         self.smile_face = QPixmap(
-            '%s/smile.png' % image_path)
+            self.resource_path('./images/smile.png'))
         self.sad_face = QPixmap(
-            '%s/sad.png' % image_path)
+            self.resource_path('./images/sad.png'))
         self.correct.setPixmap(self.smile_face)
         self.start.setDefault(True)
         self.next.setEnabled(False)
@@ -123,6 +115,14 @@ class TestWidget(QWidget):
         self.clear.clicked.connect(self.key_clear)
         self.total_spin.valueChanged.connect(self.sync_total)
         self.answer.returnPressed.connect(self.next_test)
+
+    def resource_path(self, relative_path):
+        try:
+            # PyInstaller creates a temp folder and stores path in _MEIPASS
+            base_path = sys._MEIPASS
+        except Exception:
+            base_path = os.path.abspath(".")
+        return os.path.join(base_path, relative_path)
 
     @Slot()
     def show_keyboard(self):
