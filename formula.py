@@ -99,11 +99,11 @@ def adjust_column_width(ws, formula_columns, split_num):
     for i in seperator_columns:
         letter = ws.cell(row=1, column=i).column_letter
         # adjust width of seperator
-        ws.column_dimensions[letter].width = 24 / split_num
+        ws.column_dimensions[letter].width = 21 / split_num
     for i in formula_columns:
         letter = ws.cell(row=1, column=i).column_letter
         ws.column_dimensions[letter].width = calculate_width(
-            tuple(ws.columns)[i - 1])
+            tuple(ws.columns)[i - 1]) + 3
 
     for i in range(1, len(tuple(ws.rows)) + 1):
         ws.row_dimensions[i].height = 37
