@@ -7,13 +7,13 @@ import platform
 import re
 from pathlib import Path, PureWindowsPath
 import formula
-from PySide2.QtCore import Slot, Qt
-from PySide2.QtGui import QIntValidator, QPixmap, QFont, QKeySequence
-from PySide2.QtWidgets import (QLabel, QLineEdit, QPushButton, QApplication,
+from PySide6.QtCore import Slot, Qt
+from PySide6.QtGui import QIntValidator, QPixmap, QFont, QKeySequence
+from PySide6.QtWidgets import (QLabel, QLineEdit, QPushButton, QApplication,
                                QSpinBox, QFileDialog, QGridLayout, QWidget,
                                QCheckBox, QGroupBox, QHBoxLayout, QMessageBox,
                                QErrorMessage, QMainWindow, QTabWidget,
-                               QMenuBar, QFontDialog, QAction, QShortcut)
+                               QMenuBar, QFontDialog)
 
 
 class Tab(QTabWidget):
@@ -239,9 +239,10 @@ class SaveWidget(QWidget):
         self.lower_spin = QSpinBox(self)
         self.lower_spin.setMinimum(1)
         self.upper_label = QLabel(self.tr('Max'))
-        self.upper_default = 10
+        self.upper_default = 100
         self.upper_spin = QSpinBox(self)
         self.upper_spin.setMinimum(1)
+        self.upper_spin.setMaximum(self.upper_default * 10)
         self.upper_spin.setValue(self.upper_default)
         self.n_label = QLabel(self.tr('Number per formula'))
         self.n_spin = QSpinBox(self)
@@ -387,22 +388,22 @@ class MainWindow(QMainWindow):
         self.widget.test_widget.status_bar = self.statusBar()
 
         # QAction
-        font_action = QAction(self.tr('Font'), self)
-        font_action.setShortcut('Ctrl+F')
-        font_action.triggered.connect(self.font_app)
-        self.font_menu.addAction(font_action)
+        #font_action = QAction(self.tr('Font'), self)
+        #font_action.setShortcut('Ctrl+F')
+        #font_action.triggered.connect(self.font_app)
+        #self.font_menu.addAction(font_action)
 
         # Shortcuts
-        start_shortcut = QShortcut(QKeySequence('Ctrl+S'), self)
-        start_shortcut.activated.connect(self.start_app)
-        stop_shortcut = QShortcut(QKeySequence('Ctrl+T'), self)
-        stop_shortcut.activated.connect(self.stop_app)
-        next_shortcut = QShortcut(QKeySequence('Ctrl+N'), self)
-        next_shortcut.activated.connect(self.next_app)
-        option_shortcut = QShortcut(QKeySequence('Ctrl+O'), self)
-        option_shortcut.activated.connect(self.option_app)
-        math_shortcut = QShortcut(QKeySequence('Ctrl+M'), self)
-        math_shortcut.activated.connect(self.math_app)
+        #start_shortcut = QShortcut(QKeySequence('Ctrl+S'), self)
+        #start_shortcut.activated.connect(self.start_app)
+        #stop_shortcut = QShortcut(QKeySequence('Ctrl+T'), self)
+        #stop_shortcut.activated.connect(self.stop_app)
+        #next_shortcut = QShortcut(QKeySequence('Ctrl+N'), self)
+        #next_shortcut.activated.connect(self.next_app)
+        #option_shortcut = QShortcut(QKeySequence('Ctrl+O'), self)
+        #option_shortcut.activated.connect(self.option_app)
+        #math_shortcut = QShortcut(QKeySequence('Ctrl+M'), self)
+        #math_shortcut.activated.connect(self.math_app)
 
         self.setCentralWidget(self.widget)
 
